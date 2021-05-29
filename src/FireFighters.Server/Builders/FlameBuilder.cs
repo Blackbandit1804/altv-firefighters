@@ -9,7 +9,6 @@ namespace FireFighters.Server.Builders
 {
     public class FlameBuilder
     {
-        private bool _isGasFire;
         private Vector3 _position;
         private uint _level;
 
@@ -20,16 +19,9 @@ namespace FireFighters.Server.Builders
 
         public FlameBuilder Reset()
         {
-            _isGasFire = false;
             _position = Vector3.Zero;
             _level = 0;
 
-            return this;
-        }
-
-        public FlameBuilder GasFire()
-        {
-            _isGasFire = true;
             return this;
         }
 
@@ -45,12 +37,12 @@ namespace FireFighters.Server.Builders
             return this;
         }
 
-        public Flame InitializeFlame()
+        public Flame Build(Fire parentFire)
         {
             if (_position == Vector3.Zero) // multithreading issue: race-condition
             {
                 var ex = new InvalidOperationException("Flame needs a position");
-                Alt.Log("Exception on FlameBuilder: " + ex.Message);
+                Console.WriteLine($"Exception on FlameBuilder: {ex.Message}");
                 throw ex;
             }
 
@@ -71,11 +63,11 @@ namespace FireFighters.Server.Builders
             if (nearestPlayer == null)
             {
                 var ex = new InvalidOperationException("Flame could not be created, because no nearest player found");
-                Alt.Log("Exception on FlameBuilder: " + ex.Message);
+                Console.WriteLine($"Exception on FlameBuilder: {ex.Message}");
                 throw ex;
             }
 
-            var flame = new Flame(_position, _isGasFire)
+            var flame = new Flame(_position, parentFire)
             {
                 Level = _level
             };

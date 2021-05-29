@@ -4,74 +4,106 @@ using FireFighters.Models;
 using FireFighters.Server.Builders;
 using System;
 using System.Threading.Tasks;
+using FireFighters.Server.Callbacks;
+using System.Collections.Generic;
+using System.Linq;
+using FireFighters.Server.Extensions;
 
 namespace FireFighters.Server.Managers
 {
     public class FireManager
     {
-        private bool _initialized;
         private readonly FlameManager _flameManager;
+        private readonly SynchronizedCollection<Fire> _activeFires;
 
-        public FireManager(Fire fire)
+        public FireManager()
         {
-            Fire = fire;
+            _activeFires = new SynchronizedCollection<Fire>();
             _flameManager = new FlameManager();
+
+            Task
+                .Factory
+                .StartNew(ManageFires, null, TaskCreationOptions.LongRunning)
+                .PerformAsyncTaskWithoutAwait();
         }
 
-        public Fire Fire { get; }
-
-        public async Task<bool> Initialize()
+        private async Task ManageFires(object state)
         {
-            if (_initialized)
+            var firesToRemove = new List<Fire>();
+
+            foreach (var fire in _activeFires)
             {
+                _flameManager.OnTick(fire.MainFlame);
+
+                if (!fire.MainFlame.Extinguished)
+                {
+                    continue;
+                }
+
+                // main flame of the fire is extinguished -> remove fire from entity sync
+                InternalStopFire(fire);
+                firesToRemove.Add(fire);
+            }
+
+            foreach (var fire in firesToRemove)
+            {
+                _activeFires.Remove(fire);
+            }
+
+            await Task.Delay(100);
+        }
+
+        public async Task StartNewFire(Fire fire)
+        {
+            AltEntitySync.AddEntity(fire);
+
+            // note: is fire.Range already defined by entitysync at this position? should be..
+
+            var emitCallback = new EmitInRangeCallback("FireFighters:Fire:NewStarted", fire.Position, fire.Range, new object[] { fire.Id });
+            await Alt.ForEachPlayers(emitCallback);
+
+            await Task.Delay(fire.FlameSpawnDelay);
+
+            // render big smoke
+            fire.DisplayFlameSmoke = true;
+
+            // build the fire object
+            var mainFlameBuilder = new FlameBuilder()
+                .SetPosition(fire.Position)
+                .SetLevel(10);
+
+            fire.MainFlame = mainFlameBuilder.Build(fire);
+
+            // add to tick manager
+            _activeFires.Add(fire);
+        }
+
+        public bool StopFire(ulong fireId)
+        {
+            var fire = _activeFires.SingleOrDefault(e => e.Id == fireId);
+
+            if (fire == null)
+            {
+                Console.WriteLine($"Warning: Fire Id {fireId} not found!");
                 return false;
             }
 
-            _initialized = true;
+            InternalStopFire(fire);
+            _activeFires.Remove(fire);
 
-            AltEntitySync.AddEntity(Fire);
-
-            Alt.EmitAllClients("FireFighters:Fire:NewStarted", Fire.Id);
-
-            await Task.Delay(Fire.FlameSpawnDelay);
-
-            Alt.EmitAllClients("FireFighters:Fire:FlamesSpawning", Fire.Id);
-
-            var flameBuilder = new FlameBuilder()
-                .SetPosition(Fire.Position)
-                .SetLevel(10);
-
-            if (Fire.IsGasFire) flameBuilder.GasFire();
-
-            Fire.MainFlame = flameBuilder.InitializeFlame();
-
-            OnTick(); // no await!
-
-            return _initialized;
+            return true;
         }
 
-        private async void OnTick()
+        private void InternalStopFire(Fire fire)
         {
-            if (!_initialized)
+            if (!AltEntitySync.TryGetEntity(fire.Id, (ulong)EntityTypes.Fire, out _))
             {
+                Console.WriteLine($"Warning: Fire Id {fire.Id} was not synchronized via EntitySync!");
                 return;
             }
-
-            _flameManager.OnTick(Fire.MainFlame);
-
-            if (Fire.MainFlame.Extinguished)
-            {
-                var id = Fire.Id;
-                AltEntitySync.RemoveEntity(Fire);
-
-                Console.WriteLine($"Fire {id} removed");
-
-                return;
-            }
-
-            await Task.Delay(50);
-
-            OnTick();
+            
+            AltEntitySync.RemoveEntity(fire);
+            Console.WriteLine($"Fire {fire.Id} removed from EntitySync");
         }
     }
 }

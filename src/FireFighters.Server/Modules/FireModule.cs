@@ -1,4 +1,5 @@
-﻿using AltV.Net;
+﻿using System;
+using AltV.Net;
 using AltV.Net.Data;
 using AltV.Net.Elements.Entities;
 using AltV.Net.EntitySync;
@@ -6,48 +7,48 @@ using FireFighters.Models;
 using FireFighters.Server.Builders;
 using System.Linq;
 using System.Numerics;
+using AltV.Net.Async;
+using FireFighters.Server.Managers;
 
 namespace FireFighters.Server.Modules
 {
     public class FireModule
         : IScript
     {
-        public const int FireStreamRange = 500;
+        private readonly FireManager _fireManager;
 
         public FireModule()
         {
-            Alt.OnServer<Position>("FireFighters:Fire:Create", OnServerFireCreate);
+            _fireManager = new FireManager();
+
+            AltAsync.OnServer<Position, int, int, int, bool>("FireFighters:Fire:Create", OnServerFireCreate);
             Alt.OnServer<ulong>("FireFighters:Fire:Remove", OnServerFireRemove);
 
             Alt.OnClient<ulong>("FireFighters:Flame:ScriptFireExtinguished", OnClientFlameScriptFireExtinguished);
             Alt.OnClient<ulong, float>("FireFighters:Flame:FoundPositionGround", OnClientFlameFoundPositionGround);
         }
 
-        private void OnServerFireCreate(Position position)
+        private async void OnServerFireCreate(Position position, int maxFlames, int maxRange, int spawnDelay, bool explosion)
         {
-            var _ = new FireBuilder()
+            if (maxFlames <= 0) throw new ArgumentOutOfRangeException(nameof(maxFlames));
+            if (maxRange <= 0) throw new ArgumentOutOfRangeException(nameof(maxRange));
+            if (spawnDelay <= 0) throw new ArgumentOutOfRangeException(nameof(spawnDelay));
+
+            var builder = new FireBuilder()
                 .SetPosition(position)
-                .SetFlameSpawnDelay(3000)
-                .InitializeFire();
+                .SetMaxFlames(maxFlames)
+                .SetMaxSpreadDistance(maxRange)
+                .SetFlameSpawnDelay(spawnDelay)
+                .ExplodesOnStartup(explosion);
+
+            var fire = builder.Build();
+
+            await _fireManager.StartNewFire(fire);
         }
 
         private void OnServerFireRemove(ulong fireId)
         {
-            // Console.WriteLine($"Try to stop fire {fireId}");
-
-            if (!AltEntitySync.TryGetEntity(fireId, (ulong)EntityTypes.Fire, out AltV.Net.EntitySync.IEntity entity))
-            {
-                return;
-            }
-
-            if (entity is not Fire fire)
-            {
-                return;
-            }
-
-            fire.MainFlame.Extinguished = true;
-
-            // Console.WriteLine($"Fire {fireId} stopped");
+            _fireManager.StopFire(fireId);
         }
 
         private void OnClientFlameScriptFireExtinguished(IPlayer player, ulong entityId)

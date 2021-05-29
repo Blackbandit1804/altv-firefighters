@@ -1,4 +1,5 @@
-﻿using AltV.Net.EntitySync;
+﻿using System.Linq;
+using AltV.Net.EntitySync;
 using System.Numerics;
 
 namespace FireFighters.Models
@@ -13,63 +14,35 @@ namespace FireFighters.Models
 
         public bool ExplosionOnStart
         {
-            get
-            {
-                if (!TryGetData("explosionOnStart", out bool explosionOnStart))
-                    return false;
-
-                return explosionOnStart;
-            }
-            set
-            {
-                SetData("explosionOnStart", value);
-            }
+            get => TryGetData("explosionOnStart", out bool explosionOnStart) && explosionOnStart;
+            set => SetData("explosionOnStart", value);
         }
 
-        /*public int MaxSpreadDistance 
+        public bool DisplayFlameSmoke
         {
-            get
-            {
-                if (!TryGetData("maxSpreadDistance", out int maxSpreadDistance))
-                    return 80;
-
-                return maxSpreadDistance;
-            }
-            set
-            {
-                SetData("maxSpreadDistance", value);
-            }
-        }*/
-
-        public int FlameSpawnDelay
-        {
-            get
-            {
-                if (!TryGetData("flameSpawnDelay", out int flameSpawnDelay))
-                    return 80;
-
-                return flameSpawnDelay;
-            }
-            set
-            {
-                SetData("flameSpawnDelay", value);
-            }
+            get => TryGetData("flamesSpawned", out bool flamesSpawned) && flamesSpawned;
+            set => SetData("flamesSpawned", value);
         }
+        
         public bool IsGasFire
         {
-            get
-            {
-                if (!TryGetData("isGasFire", out bool isGasFire))
-                    return false;
-
-                return isGasFire;
-            }
-            set
-            {
-                SetData("isGasFire", value);
-            }
+            get => TryGetData("isGasFire", out bool isGasFire) && isGasFire;
+            set => SetData("isGasFire", value);
         }
 
+        public int MaxSpreadDistance { get; set; }
+
+        public int MaxFlames { get; set; }
+
+        public int FlameSpawnDelay { get; set; }
+
         public Flame MainFlame { get; set; }
+
+        public int CurrentFlames => GetCountOfFlamesRecursive(MainFlame);
+
+        private int GetCountOfFlamesRecursive(Flame flame)
+        {
+            return flame?.Children.Sum(GetCountOfFlamesRecursive) ?? 0;
+        }
     }
 }

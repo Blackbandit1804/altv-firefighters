@@ -7,8 +7,8 @@ class ClientFire {
     public EmbersSmokeHandle: number
     public FireSmokeHandle: number
 
-    public IsGasFire: boolean
     public FlamesSpawned: boolean
+    public IsGasFire: boolean
     public Explosion: boolean
 
     public Position: alt.Vector3
@@ -32,6 +32,7 @@ alt.onServer("entitySync:create", async (entityId: number, entityType: number, p
     if (newEntityData) {
         let fire = new ClientFire()
         fire.Position = position
+        fire.FlamesSpawned = newEntityData.flamesSpawned
         fire.IsGasFire = newEntityData.isGasFire
         fire.Explosion = newEntityData.explosionOnStart
 
@@ -68,9 +69,20 @@ alt.onServer("entitySync:updatePosition", async (entityId, entityType, position)
     }
 })
 
-alt.onServer("entitySync:updateData", (entityId, entityType, newEntityData) => {
+alt.onServer("entitySync:updateData", async (entityId, entityType, newEntityData) => {
     if (entityType !== EntityType || !entities.hasOwnProperty(entityId))
         return;
+
+    if (newEntityData.hasOwnProperty("flamesSpawned")) {
+        const oldValueFlamesSpawned = entities[entityId].FlamesSpawned
+        entities[entityId].FlamesSpawned = newEntityData.flamesSpawned;
+
+        if (!oldValueFlamesSpawned && !!entities[entityId].FlamesSpawned) {
+            await AsyncHelper.RequestNamedPtfxAsset("scr_agencyheistb")
+            natives.useParticleFxAsset("scr_agencyheistb")
+            entities[entityId].FireSmokeHandle = natives.startParticleFxLoopedAtCoord("scr_env_agency3b_smoke", entities[entityId].Position.x, entities[entityId].Position.y, entities[entityId].Position.z, 0, 0, 0, FireSmokeSize, false, false, false, false)
+        }
+    }
 
     if (newEntityData.hasOwnProperty("isGasFire"))
         entities[entityId].IsGasFire = newEntityData.isGasFire;
@@ -85,7 +97,7 @@ alt.onServer("entitySync:clearCache", (entityId, entityType) => {
 
     if (entities.hasOwnProperty(entityId)) {
         removeEntityAtClient(entities[entityId])
-        
+
         delete entities[entityId];
     }
 })
@@ -101,29 +113,12 @@ alt.onServer('FireFighters:Fire:NewStarted', async (entityId: number) => {
 
     const pos = entities[entityId].Position
 
-    if (entities[entityId] && Vectors.distance(alt.Player.local.pos, pos) <= EntitySyncRange) {
-        await AsyncHelper.RequestNamedPtfxAsset("scr_trevor3")
+    await AsyncHelper.RequestNamedPtfxAsset("scr_trevor3")
 
-        natives.shakeGameplayCam("MEDIUM_EXPLOSION_SHAKE", 1)
-        natives.useParticleFxAsset("scr_trevor3")
-        natives.startParticleFxNonLoopedAtCoord("scr_trev3_trailer_expolsion", pos.x, pos.y, pos.z + 1, 0, 0, 0, 1, false, false, false)
-        natives.playSoundFromCoord(-1, "MAIN_EXPLOSION_CHEAP", pos.x, pos.y, pos.z, '', false, EntitySyncRange, false)
-    }
-})
-
-alt.onServer('FireFighters:Fire:FlamesSpawning', async (entityId: number) => {
-    if (!entities.hasOwnProperty(entityId))
-        return
-
-    entities[entityId].FlamesSpawned = true
-
-    if (entities[entityId].EmbersSmokeHandle != null) {
-        await AsyncHelper.RequestNamedPtfxAsset("scr_agencyheistb")
-
-        natives.useParticleFxAsset("scr_agencyheistb")
-        entities[entityId].FireSmokeHandle = natives.startParticleFxLoopedAtCoord("scr_env_agency3b_smoke", entities[entityId].Position.x, entities[entityId].Position.y, entities[entityId].Position.z, 0, 0, 0, FireSmokeSize, false, false, false, false)
-    }
-
+    natives.shakeGameplayCam("MEDIUM_EXPLOSION_SHAKE", 1)
+    natives.useParticleFxAsset("scr_trevor3")
+    natives.startParticleFxNonLoopedAtCoord("scr_trev3_trailer_expolsion", pos.x, pos.y, pos.z + 1, 0, 0, 0, 1, false, false, false)
+    natives.playSoundFromCoord(-1, "MAIN_EXPLOSION_CHEAP", pos.x, pos.y, pos.z, '', false, EntitySyncRange, false)
 })
 
 const spawnEntityAtClient = async (fire: ClientFire) => {

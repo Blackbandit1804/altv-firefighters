@@ -20,7 +20,7 @@ alt.on('connectionComplete', async () => {
     //alt.toggleGameControls(false);
 })
 
-alt.onServer('FireFighters:SelectSpawn', async (fireStationsString) => {
+alt.onServer('FireFighters:SelectSpawn', async (fireStationsString: string) => {
     const fireStations = JSON.parse(fireStationsString)
 
     let spawnMenu = new NativeUI.Menu('alt:V Firefighters', 'Spawn Selection', new NativeUI.Point(50, 50))
@@ -55,12 +55,12 @@ alt.onServer('FireFighters:PlayerSpawned', () => {
 
 let fireStationBlips: alt.PointBlip[] = []
 
-alt.onServer('FireFighters:InitFireStations', (fireStations) => {
+alt.onServer('FireFighters:InitFireStations', (fireStations: any[]) => {
     for (let i = 0; i < fireStations.length; i++) {
         const station = fireStations[i]
-        fireStationBlips[fireStations.name] = new alt.PointBlip(station.posX, station.posY, station.posZ)
-        fireStationBlips[fireStations.name].sprite = 60 // police
-        fireStationBlips[fireStations.name].color = 1 // red
-        fireStationBlips[fireStations.name].shortRange = true
+        fireStationBlips[station.name] = new alt.PointBlip(station.posX, station.posY, station.posZ)
+        fireStationBlips[station.name].sprite = 60 // police
+        fireStationBlips[station.name].color = 1 // red
+        fireStationBlips[station.name].shortRange = true
     }
 })
