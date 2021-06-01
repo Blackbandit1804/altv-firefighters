@@ -18,6 +18,9 @@ namespace FireFighters.Server.Modules
             Alt.OnClient<FirefighterVehicle>("FireFighters:Item:WaterHose:VehicleToPlayer", OnItemWaterHoseVehicleToPlayer);
             Alt.OnClient<FirefighterVehicle, Position>("FireFighters:Item:WaterHose:VehicleToHydrant", OnItemWaterHoseVehicleToHydrant);
             Alt.OnClient<FirefighterVehicle, FirefighterVehicle>("FireFighters:Item:WaterHose:VehicleToVehicle", OnItemWaterHoseVehicleToVehicle);
+            Alt.OnClient<FirefighterVehicle>("FireFighters:FireTruck:HydrantDetached", OnHydrantDetached);
+            Alt.OnClient<FirefighterVehicle>("FireFighters:FireTruck:FireTruckDetached", OnFireTruckDetached);
+            Alt.OnClient<FirefighterVehicle>("FireFighters:FireTruck:PlayerDetached", OnPlayerHoseDetached);
         }
 
         private void OnItemWaterHose(IPlayer player)
@@ -98,7 +101,7 @@ namespace FireFighters.Server.Modules
 
             vehicle.FireTruckData.ConnectedHydrantPosition = hydrantPosition;
             
-            player.Emit("FireFighters:FireTruck:ConnectHydrant", vehicle, hydrantPosition);
+            player.Emit("FireFighters:FireTruck:AttachHydrant", vehicle, hydrantPosition);
         }
         
         private void OnItemWaterHoseVehicleToVehicle(IPlayer player, FirefighterVehicle supplyingVehicle, FirefighterVehicle consumingVehicle)
@@ -131,7 +134,7 @@ namespace FireFighters.Server.Modules
             supplyingVehicle.FireTruckData.OutgoingVehicleSocket = consumingVehicle;
             consumingVehicle.FireTruckData.IncomingVehicleSocket = supplyingVehicle;
             
-            player.Emit("FireFighters:FireTruck:ConnectFireTruck", supplyingVehicle, consumingVehicle);
+            player.Emit("FireFighters:FireTruck:AttachFireTruck", supplyingVehicle, consumingVehicle);
         }
     }
 }

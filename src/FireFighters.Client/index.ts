@@ -16,16 +16,19 @@ alt.log('Resource has been loaded.')
 
 from server:
 FireFighters:Item:WaterHose:Used
-FireFighters:FireTruck:ConnectHydrant
-FireFighters:FireTruck:ConnectFireTruck
-FireFighters:FireTruck:DisconnectPlayer
-FireFighters:FireTruck:ConnectPlayer
+FireFighters:FireTruck:AttachHydrant
+FireFighters:FireTruck:AttachFireTruck
+FireFighters:FireTruck:AttachPlayer
+FireFighters:FireTruck:DetachPlayer
 
 to server:
 FireFighters:Item:WaterHose
 FireFighters:Item:WaterHose:VehicleToPlayer
 FireFighters:Item:WaterHose:VehicleToHydrant
 FireFighters:Item:WaterHose:VehicleToVehicle
+FireFighters:FireTruck:HydrantDetached
+FireFighters:FireTruck:FireTruckDetached
+FireFighters:FireTruck:PlayerDetached
 
 player streamSynced:
 activeWaterHose

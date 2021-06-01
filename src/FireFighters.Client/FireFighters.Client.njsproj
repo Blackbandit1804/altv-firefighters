@@ -31,6 +31,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="index.ts" />
+    <Content Include="Handlers\FireTrucksHandler.ts" />
     <Content Include="package.json" />
     <Content Include="tsconfig.json" />
   </ItemGroup>

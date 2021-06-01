@@ -41,9 +41,9 @@ namespace FireFighters.Server.Entities
             }
             set
             {
-                _waterHoseSocketUser1?.Emit("FireFighters:FireTruck:DisconnectPlayer", Vehicle);
+                _waterHoseSocketUser1?.Emit("FireFighters:FireTruck:DetachPlayer", Vehicle);
                 _waterHoseSocketUser1 = value;
-                _waterHoseSocketUser1.Emit("FireFighters:FireTruck:ConnectPlayer", Vehicle);
+                _waterHoseSocketUser1.Emit("FireFighters:FireTruck:AttachPlayer", Vehicle);
             }
         }
         
@@ -62,9 +62,9 @@ namespace FireFighters.Server.Entities
             }
             set
             {
-                _waterHoseSocketUser2?.Emit("FireFighters:FireTruck:DisconnectPlayer", Vehicle);
+                _waterHoseSocketUser2?.Emit("FireFighters:FireTruck:DetachPlayer", Vehicle);
                 _waterHoseSocketUser2 = value;
-                _waterHoseSocketUser2.Emit("FireFighters:FireTruck:ConnectPlayer", Vehicle);
+                _waterHoseSocketUser2.Emit("FireFighters:FireTruck:AttachPlayer", Vehicle);
             }
         }
         
@@ -83,9 +83,9 @@ namespace FireFighters.Server.Entities
             }
             set
             {
-                _waterHoseSocketUser3?.Emit("FireFighters:FireTruck:DisconnectPlayer", Vehicle);
+                _waterHoseSocketUser3?.Emit("FireFighters:FireTruck:DetachPlayer", Vehicle);
                _waterHoseSocketUser3 = value;
-                _waterHoseSocketUser3.Emit("FireFighters:FireTruck:ConnectPlayer", Vehicle);
+                _waterHoseSocketUser3.Emit("FireFighters:FireTruck:AttachPlayer", Vehicle);
             }
         }
         
