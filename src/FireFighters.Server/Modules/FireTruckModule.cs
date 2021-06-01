@@ -3,20 +3,21 @@ using AltV.Net;
 using AltV.Net.Data;
 using AltV.Net.Elements.Entities;
 using FireFighters.Server.Entities;
+using FireFighters.Server.Managers;
 
 namespace FireFighters.Server.Modules
 {
-    public class FirefighterVehicleModule
+    public class FireTruckModule
         : IScript
     {
         private const int WaterHoseLength = 30;
-        
-        public FirefighterVehicleModule()
+
+        public FireTruckModule()
         {
             Alt.OnClient("FireFighters:Item:WaterHose", OnItemWaterHose);
             Alt.OnClient<FirefighterVehicle>("FireFighters:Item:WaterHose:VehicleToPlayer", OnItemWaterHoseVehicleToPlayer);
-            Alt.OnClient<FirefighterVehicle, Position>("FireFighters:Item:WaterHose:VehicleConnection:VehicleToHydrant", OnItemWaterHoseVehicleToHydrant);
-            Alt.OnClient<FirefighterVehicle, FirefighterVehicle>("FireFighters:Item:WaterHose:VehicleConnection:VehicleToVehicle", OnItemWaterHoseVehicleToVehicle);
+            Alt.OnClient<FirefighterVehicle, Position>("FireFighters:Item:WaterHose:VehicleToHydrant", OnItemWaterHoseVehicleToHydrant);
+            Alt.OnClient<FirefighterVehicle, FirefighterVehicle>("FireFighters:Item:WaterHose:VehicleToVehicle", OnItemWaterHoseVehicleToVehicle);
         }
 
         private void OnItemWaterHose(IPlayer player)

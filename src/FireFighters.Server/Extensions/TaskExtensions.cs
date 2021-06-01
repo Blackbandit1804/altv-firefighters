@@ -11,5 +11,10 @@ namespace FireFighters.Server.Extensions
 
             var dummy = task.ContinueWith(exceptionHandler, TaskContinuationOptions.OnlyOnFaulted);
         }
+
+        public static void BlockExecutionUntilTaskFinished(this Task task)
+        {
+            task.GetAwaiter().GetResult();
+        }
     }
 }

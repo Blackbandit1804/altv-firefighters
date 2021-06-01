@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using AltV.Net;
 using AltV.Net.Data;
 using AltV.Net.Elements.Entities;
 
 namespace FireFighters.Server.Entities
 {
-    public class FirefighterVehicleData
+    public class FireTruckData
     {
         private static readonly List<uint> FireTruckModels = new()
         {
@@ -15,7 +14,7 @@ namespace FireFighters.Server.Entities
 
         public FirefighterVehicle Vehicle { get; }
 
-        public FirefighterVehicleData(FirefighterVehicle vehicle)
+        public FireTruckData(FirefighterVehicle vehicle)
         {
             Vehicle = vehicle;
         }
@@ -26,7 +25,70 @@ namespace FireFighters.Server.Entities
         public int WaterTankCapacity { get; set; }
         public FirefighterVehicle OutgoingVehicleSocket { get; set; }
         public FirefighterVehicle IncomingVehicleSocket { get; set; }
-        public IPlayer WaterHoseSocketUsedBy { get; set; }
+
+        private IPlayer _waterHoseSocketUser1;
+        public IPlayer WaterHoseSocketUser1
+        {
+            get
+            {
+                if (_waterHoseSocketUser1 is {Exists: true})
+                {
+                    return _waterHoseSocketUser1;
+                }
+
+                _waterHoseSocketUser1 = null;
+                return _waterHoseSocketUser1;
+            }
+            set
+            {
+                _waterHoseSocketUser1?.Emit("FireFighters:FireTruck:DisconnectPlayer", Vehicle);
+                _waterHoseSocketUser1 = value;
+                _waterHoseSocketUser1.Emit("FireFighters:FireTruck:ConnectPlayer", Vehicle);
+            }
+        }
+        
+        private IPlayer _waterHoseSocketUser2;
+        public IPlayer WaterHoseSocketUser2
+        {
+            get
+            {
+                if (_waterHoseSocketUser2 is {Exists: true})
+                {
+                    return _waterHoseSocketUser2;
+                }
+
+                _waterHoseSocketUser2 = null;
+                return _waterHoseSocketUser2;
+            }
+            set
+            {
+                _waterHoseSocketUser2?.Emit("FireFighters:FireTruck:DisconnectPlayer", Vehicle);
+                _waterHoseSocketUser2 = value;
+                _waterHoseSocketUser2.Emit("FireFighters:FireTruck:ConnectPlayer", Vehicle);
+            }
+        }
+        
+        private IPlayer _waterHoseSocketUser3;
+        public IPlayer WaterHoseSocketUser3
+        {
+            get
+            {
+                if (_waterHoseSocketUser3 is {Exists: true})
+                {
+                    return _waterHoseSocketUser3;
+                }
+
+                _waterHoseSocketUser3 = null;
+                return _waterHoseSocketUser3;
+            }
+            set
+            {
+                _waterHoseSocketUser3?.Emit("FireFighters:FireTruck:DisconnectPlayer", Vehicle);
+               _waterHoseSocketUser3 = value;
+                _waterHoseSocketUser3.Emit("FireFighters:FireTruck:ConnectPlayer", Vehicle);
+            }
+        }
+        
         public Position? ConnectedHydrantPosition { get; set; }
     }
 }
